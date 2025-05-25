@@ -19,10 +19,15 @@ class Eat(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(pygame.image.load(image), (width, height))
         self.hitbox = self.image.get_rect()
         self.hitbox.x = x
-        self.hitbox.y = y   
+        self.hitbox.y = y
+
     def draw(self):
         """Відмалювання картинки на координатах хітбоксу"""
         window.blit(self.image, (self.hitbox.x, self.hitbox.y))
+
+    def collide(self):
+        self.hitbox.x = randint(0, WIDTH_WINDOW - self.hitbox.width)
+        self.hitbox.y = randint(0, HEIGHT_WINDOW - self.hitbox.height)
           
 
 eat = Eat(100, 100, 35, 35, "eat.png")
@@ -32,9 +37,13 @@ while game:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                eat.collide()
     
     window.blit(bg, (0, 0))
     eat.draw()
+
 
 
     pygame.display.update()
