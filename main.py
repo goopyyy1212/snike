@@ -1,5 +1,6 @@
 import pygame
 from random import randint
+from time import sleep
 
 pygame.init()
 
@@ -41,7 +42,7 @@ class Snake():
         self.size = size
         self.lastpos = [x, y]
         self.direction = "down"
-        self.step = 1
+        self.step = 3
 
     def draw(self):
         """Відмалювання змійки"""
@@ -75,13 +76,13 @@ while game:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 eat.collide()
-            if event.key == pygame.K_w:
+            if event.key == pygame.K_w and head.direction != "down":
                 head.direction = "up"
-            if event.key == pygame.K_s:
+            if event.key == pygame.K_s and head.direction != "up":
                 head.direction = "down"
-            if event.key == pygame.K_a:
+            if event.key == pygame.K_a and head.direction != "right":
                 head.direction = "left"
-            if event.key == pygame.K_d:
+            if event.key == pygame.K_d and head.direction != "left":
                 head.direction = "right"
 
     if head.direction == "down":
@@ -102,13 +103,24 @@ while game:
     window.blit(bg, (0, 0))
 
     eat.draw()
-    for i in range(-1, len(snake_elements), -1):
-        snake_elements[i].draw()
-        print(i)
-
-    #for e in snake_elements:
-        #e.draw()
-
+    #for i in range(-1, len(snake_elements), -1):
+        #snake_elements[i].draw()
+        #print(i)
+    
+    for e in snake_elements:
+        if head.rect.colliderect(e.rect) and snake_elements.index(e) >= head.size * 2:
+            text = pygame.font.SysFont("Arial", 70).render("Ти програв", True, (0, 0, 0))
+            window.blit(text, (200, 200))
+            e.color = (255, 0, 0)
+            
+            game = False
+        e.draw()
+    if head.rect.x >= WIDTH_WINDOW - SIZE or head.rect.x <= 0 or head.rect.y >= HEIGHT_WINDOW - SIZE or head.rect.y <= 0:
+            text = pygame.font.SysFont("Arial", 70).render("Ти програв", True, (0, 0, 0))
+            window.blit(text, (200, 200))
+            e.color = (255, 0, 0)
+            
+            game = False
 
     pygame.display.update()
-
+sleep(3)
