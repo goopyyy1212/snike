@@ -11,11 +11,33 @@ window = pygame.display.set_mode((WIDTH_WINDOW, HEIGHT_WINDOW))
 BLUE = (0, 0, 255)
 ORANGE = (255, 155, 69)
 
+score = 0
 SIZE = 25
 
 bg = pygame.transform.scale(pygame.image.load("background.png"), (WIDTH_WINDOW, HEIGHT_WINDOW))
 
+game = True
+
 class Eat(pygame.sprite.Sprite):
+    """клас для створювання картинки та випадкового її розміщення на полі гри"""
+    def __init__(self, x, y, width, height, image):
+        super().__init__()
+        self.image = pygame.transform.scale(pygame.image.load(image), (width, height))
+        self.hitbox = self.image.get_rect()
+        self.hitbox.x = x
+        self.hitbox.y = y
+
+    def draw(self):
+        """Відмалювання картинки на координатах хітбоксу"""
+        window.blit(self.image, (self.hitbox.x, self.hitbox.y))
+
+    def collide(self):
+        """Обробка колізії"""
+        self.hitbox.x = randint(0, WIDTH_WINDOW - self.hitbox.width)
+        self.hitbox.y = randint(0, HEIGHT_WINDOW - self.hitbox.height)
+
+
+class Stone(pygame.sprite.Sprite):
     """клас для створювання картинки та випадкового її розміщення на полі гри"""
     def __init__(self, x, y, width, height, image):
         super().__init__()
@@ -42,7 +64,7 @@ class Snake():
         self.size = size
         self.lastpos = [x, y]
         self.direction = "down"
-        self.step = 3
+        self.step = 1
 
     def draw(self):
         """Відмалювання змійки"""
@@ -58,6 +80,13 @@ head = Snake(25, 25, SIZE, BLUE)
 snake_elements = []
 snake_elements.append(head)
 
+def lose():
+    text = pygame.font.SysFont("Arial", 70).render("Ти програв", True, (0, 0, 0))
+    window.blit(text, (200, 200))
+    global game
+    game = False
+
+
 def move(x, y):
     lx, ly = x, y
     for e in snake_elements:
@@ -67,9 +96,14 @@ def move(x, y):
     
     
 eat = Eat(100, 100, 35, 35, "eat.png")
-game = True
+
+stone = Eat(100, 100, 35, 35, "stone.png")
+stone.collide()
+
+
 while game:
     pygame.time.delay(10)
+    window.blit(bg, (0, 0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game = False
@@ -96,31 +130,36 @@ while game:
 
     if head.rect.colliderect(eat.hitbox):
         eat.collide()
+        score += 1
         for _ in range(20):
             lx, ly = snake_elements[-1].lastpos
             snake_elements.append(Snake(lx, ly, SIZE))
 
-    window.blit(bg, (0, 0))
+
+
+    if head.rect.colliderect(stone.hitbox):
+        lose()
+
+    
 
     eat.draw()
+    stone.draw()
     #for i in range(-1, len(snake_elements), -1):
         #snake_elements[i].draw()
         #print(i)
     
+    if randint(0, 100) == 0:
+        stone.collide()
+
     for e in snake_elements:
         if head.rect.colliderect(e.rect) and snake_elements.index(e) >= head.size * 2:
-            text = pygame.font.SysFont("Arial", 70).render("Ти програв", True, (0, 0, 0))
-            window.blit(text, (200, 200))
+            lose()
             e.color = (255, 0, 0)
-            
-            game = False
         e.draw()
     if head.rect.x >= WIDTH_WINDOW - SIZE or head.rect.x <= 0 or head.rect.y >= HEIGHT_WINDOW - SIZE or head.rect.y <= 0:
-            text = pygame.font.SysFont("Arial", 70).render("Ти програв", True, (0, 0, 0))
-            window.blit(text, (200, 200))
-            e.color = (255, 0, 0)
-            
-            game = False
+        lose()
+    text = pygame.font.SysFont("Arial", 35).render(str(score), True, (255, 255, 255))
+    window.blit(text, (450, 0))
 
     pygame.display.update()
 sleep(3)
