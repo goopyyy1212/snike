@@ -4,40 +4,39 @@ from time import sleep
 
 pygame.init()
 
-WIDTH_WINDOW = 500
-HEIGHT_WINDOW = 500
+clock = pygame.time.Clock()
+WIDTH_WINDOW = 600
+HEIGHT_WINDOW = 600
 window = pygame.display.set_mode((WIDTH_WINDOW, HEIGHT_WINDOW))
 
 BLUE = (0, 0, 255)
 ORANGE = (255, 155, 69)
+GREEN = (0, 255, 0)
 
 score = 0
+random_respawn = 300
 SIZE = 25
 
+level_info = {
+    7:"background.png",
+    13:"backgroundGoToHill.jpg",
+    18:"backgroundDesert.jpg",
+    23:"backgroundWater.png",
+    27:"backgroundKosmos.jpg"
+}
+
+level_info = {
+    1:"background.png",
+    2:"backgroundGoToHill.jpg",
+    3:"backgroundDesert.jpg",
+    4:"backgroundWater.png",
+    5:"backgroundKosmos.jpg"
+}
 bg = pygame.transform.scale(pygame.image.load("background.png"), (WIDTH_WINDOW, HEIGHT_WINDOW))
 
 game = True
 
 class Eat(pygame.sprite.Sprite):
-    """клас для створювання картинки та випадкового її розміщення на полі гри"""
-    def __init__(self, x, y, width, height, image):
-        super().__init__()
-        self.image = pygame.transform.scale(pygame.image.load(image), (width, height))
-        self.hitbox = self.image.get_rect()
-        self.hitbox.x = x
-        self.hitbox.y = y
-
-    def draw(self):
-        """Відмалювання картинки на координатах хітбоксу"""
-        window.blit(self.image, (self.hitbox.x, self.hitbox.y))
-
-    def collide(self):
-        """Обробка колізії"""
-        self.hitbox.x = randint(0, WIDTH_WINDOW - self.hitbox.width)
-        self.hitbox.y = randint(0, HEIGHT_WINDOW - self.hitbox.height)
-
-
-class Stone(pygame.sprite.Sprite):
     """клас для створювання картинки та випадкового її розміщення на полі гри"""
     def __init__(self, x, y, width, height, image):
         super().__init__()
@@ -76,13 +75,13 @@ class Snake():
         self.rect.x = x
         self.rect.y = y
 
-head = Snake(25, 25, SIZE, BLUE)
+head = Snake(25, 25, SIZE, GREEN)
 snake_elements = []
 snake_elements.append(head)
 
 def lose():
-    text = pygame.font.SysFont("Arial", 70).render("Ти програв", True, (0, 0, 0))
-    window.blit(text, (200, 200))
+    text = pygame.font.SysFont("Arial", 70).render("Ти програв", True, (255, 0, 0))
+    window.blit(text, (100, 200))
     global game
     game = False
 
@@ -93,6 +92,10 @@ def move(x, y):
         e.goto(lx, ly)
         lx = e.lastpos[0]
         ly = e.lastpos[1]
+
+def draw_level(bg):
+    bg = pygame.transform.scale(pygame.image.load(bg), (WIDTH_WINDOW, HEIGHT_WINDOW))
+    window.blit(bg, (0, 0))
     
     
 eat = Eat(100, 100, 35, 35, "eat.png")
@@ -102,8 +105,17 @@ stone.collide()
 
 
 while game:
-    pygame.time.delay(10)
-    window.blit(bg, (0, 0))
+    
+    clock.tick(60)
+    for i in level_info.keys():
+        if score <= i:
+            draw_level(level_info[i])
+            break
+    else:
+        text = pygame.font.SysFont("Arial", 70).render("Ти виграв", True, (0, 255, 0))
+        window.blit(text, (100, 200))
+        game = False
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game = False
@@ -143,12 +155,19 @@ while game:
     
 
     eat.draw()
-    stone.draw()
+    if score >= list(level_info.keys())[2]:
+        stone.draw()
+
+
+
+    
+
+
     #for i in range(-1, len(snake_elements), -1):
         #snake_elements[i].draw()
         #print(i)
     
-    if randint(0, 100) == 0:
+    if randint(0, random_respawn) == 0:
         stone.collide()
 
     for e in snake_elements:
@@ -156,10 +175,19 @@ while game:
             lose()
             e.color = (255, 0, 0)
         e.draw()
+    head.draw()        
     if head.rect.x >= WIDTH_WINDOW - SIZE or head.rect.x <= 0 or head.rect.y >= HEIGHT_WINDOW - SIZE or head.rect.y <= 0:
         lose()
     text = pygame.font.SysFont("Arial", 35).render(str(score), True, (255, 255, 255))
-    window.blit(text, (450, 0))
+    window.blit(text, (550, 0))
+    if score >= list(level_info.keys())[4]:
+        random_respawn = 50
+    elif score >= list(level_info.keys())[3]:
+        for e in snake_elements:
+            e.step = 3
+    elif score >= list(level_info.keys())[1]:
+        for e in snake_elements:
+            e.step = 2
 
     pygame.display.update()
 sleep(3)
